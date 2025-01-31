@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文字数カウンタ</title>
+    <style>
+        textarea{
+            width: 80vw;
+            height: 50vh;
+            margin-left: auto;
+            margin-right: auto;
+        }
+    </style>
+</head>
+<body>
+    <textarea>
+
+    </textarea>
+    <br>
+    <div id="result"></div>
+    <table>
+        <thead>
+            <tr>
+                <td>
+                    カウント方法
+                </td>
+                <td>
+                    文字数
+                </td>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+    <script>
+        function extractEnglishWords(inputString) {
+            // 正規表現で英単語（アルファベットのみ）を抽出
+            const englishWords = inputString.match(/[a-zA-Z]+/g) || [];
+            
+            // 英単語を取り除いた文字列を作成
+            const stringWithoutEnglishWords = inputString.replace(/[a-zA-Z\s\n]+/g, '').trim();
+
+            return {
+                englishWords: englishWords,
+                stringWithoutEnglishWords: stringWithoutEnglishWords
+            };
+        }
+
+        const segmenter = new Intl.Segmenter("ja", { granularity: "grapheme" })
+        const countGraphemes = (input) => {
+            return [...segmenter.segment(input)].length
+        }
+        const word_counter = async() => {
+            const input_text = document.getElementsByTagName("textarea")[0].value;
+            let splited = extractEnglishWords(input_text)
+            let count = countGraphemes(splited.stringWithoutEnglishWords);
+            let english_word_count = splited.englishWords.length;
+            let japanese_only_word_count = count;
+            count += english_word_count;
+            document.getElementById("result").innerText = count + "words";
+
+            const tb = document.getElementsByTagName("tbody")[0];
+            while (tb.firstChild){
+                tb.removeChild(tb.firstChild);
+            }
+
+            //result[0][0]:英単語数+日本語数
+            //result[0][1]:100<-例
+            const result = [["英単語数+日本語数",String(count)],["英単語数",String(english_word_count)],["単純な文字数",countGraphemes(input_text.replace(/[\n]/g,""))]];
+
+            for(let x=0;x<result.length;x++){
+                const tr = document.createElement("tr");
+                const td_title = document.createElement("td");
+                const td_value = document.createElement("td");
+
+                td_title.innerText = result[x][0];
+                td_value.innerText = result[x][1];
+                tr.appendChild(td_title);
+                tr.appendChild(td_value);
+                tb.appendChild(tr);
+            }
+        }
+        document.getElementsByTagName("textarea")[0].addEventListener("input",word_counter);
+    </script>
+</body>
+</html>
